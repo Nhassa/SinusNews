@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 //import java.util.HashMap;
-import java.util.Map;
+//import java.util.Map;
 //import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
@@ -37,8 +37,8 @@ public class MainActivity extends Activity {
 	ListView lvResult;
 	AsyncNewsLoader loader;
 	ArrayList<String> massive;
-	ArrayList<Map<String, String>> result;
-	Map<String, String> hashmap;
+	//ArrayList<Map<String, String>> result;
+	//Map<String, String> hashmap;
 	String json_txt = "";
 	ArrayAdapter<String> adapter;
 
@@ -51,6 +51,8 @@ public class MainActivity extends Activity {
 		 tvInfo = (TextView) findViewById(R.id.tvInfo);
 		 tvResult = (TextView) findViewById(R.id.tvResult);
 		 lvResult = (ListView) findViewById(R.id.newsListView);
+		 
+		 massive = new ArrayList<String>();
 		 
 		 Log.d(LOG_TAG, "onCreate");
 		 
@@ -67,6 +69,7 @@ public class MainActivity extends Activity {
 						   "Интернета нет!", Toast.LENGTH_SHORT); 
 				toast.show();
 		 }
+		 
 		
 		 //JSON parsing
 		/*	JSONArray ja = null;
@@ -180,6 +183,9 @@ public class MainActivity extends Activity {
 		protected void onPostExecute(String json_txt) {
 			super.onPostExecute(json_txt);
 		      	tvInfo.setText("Latest news:");
+		      	//tvResult.setText(json_txt);
+		      	
+		      	Log.d(LOG_TAG, "endLoading");
 		      	
 		      //JSON parsing
 				JSONArray ja = null;
@@ -193,6 +199,8 @@ public class MainActivity extends Activity {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+				
+				adapter.notifyDataSetChanged();
 				
 				/*String title = "";
 				 
