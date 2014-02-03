@@ -4,8 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
 //import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
@@ -31,16 +31,23 @@ import android.content.Context;
 public class MainActivity extends Activity {
 
 	final String LOG_TAG = "sinusLogs";
+	final String ATTR_NAME_TITLE = "post_title";
+	final String ATTR_NAME_DESC = "post_content";
 	
 	TextView tvInfo;
 	TextView tvResult;
 	ListView lvResult;
+	TextView tvTitle;
+	TextView tvDesc;
 	AsyncNewsLoader loader;
-	ArrayList<String> massive;
+	//ArrayList<String> massive;
 	//ArrayList<Map<String, String>> result;
 	//Map<String, String> hashmap;
 	String json_txt = "";
-	ArrayAdapter<String> adapter;
+	//ArrayAdapter<String> adapter;
+	SimpleAdapter sAdapter;
+	ArrayList<Map<String, Object>> massive_map;
+	Map<String, Object> m;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +58,10 @@ public class MainActivity extends Activity {
 		 tvInfo = (TextView) findViewById(R.id.tvInfo);
 		 tvResult = (TextView) findViewById(R.id.tvResult);
 		 lvResult = (ListView) findViewById(R.id.newsListView);
+		 tvTitle = (TextView) findViewById(R.id.tvTitle);
+		 tvDesc = (TextView) findViewById(R.id.tvDesc);
 		 
-		 massive = new ArrayList<String>();
+		 //massive = new ArrayList<String>();
 		 
 		 Log.d(LOG_TAG, "onCreate");
 		 
@@ -70,40 +79,23 @@ public class MainActivity extends Activity {
 				toast.show();
 		 }
 		 
-		
-		 //JSON parsing
-		/*	JSONArray ja = null;
-			try {
-				ja = new JSONArray(json_txt);
-			} catch (JSONException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			String title = "";
-			 
-			 result = new ArrayList<Map<String, String>>();
-			 for(int i=0; i < ja.length(); i++){
-				 try {
-					 JSONObject post_obj = ja.getJSONObject(i);
-					 title = post_obj.getString("post_title");
-				 } catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-				 }
-				 hashmap = new HashMap<String, String>();
-				 hashmap.put("title", title);
-				 hashmap.put("desc", "desc"+i);
-				 result.add(hashmap);
-			 }
-			 
-			// массив имен атрибутов, из которых будут читаться данные
-			String[] from = { "title" };
-			// массив ID View-компонентов, в которые будут вставлять данные
-			int[] to = { R.id.tvTitle };*/
+		 //make map structure
+		 massive_map = new ArrayList<Map<String, Object>>();
+		  m = new HashMap<String, Object>();
+		  /* m.put(ATTR_NAME_TITLE, massive);
+		 m.put(ATTR_NAME_DESC, massive);
+		 massive_map.add(m);*/
+		 
+		 String[] from = {ATTR_NAME_TITLE, ATTR_NAME_DESC};
+		 int[] to = {R.id.tvTitle, R.id.tvDesc};
+		 
+		 
 		 
 		 //create adapter and set it
-		 adapter = new ArrayAdapter<String>(this, R.layout.list_item, massive);
-		 lvResult.setAdapter(adapter);
+		// adapter = new ArrayAdapter<String>(this, R.layout.list_item, massive);
+		// lvResult.setAdapter(adapter);
+		 sAdapter = new SimpleAdapter(this, massive_map, R.layout.list_item_map, from, to);
+		 lvResult.setAdapter(sAdapter);
 		 
 		 
 		 
@@ -193,32 +185,23 @@ public class MainActivity extends Activity {
 					ja = new JSONArray(json_txt);
 					for(int i=0; i<ja.length(); i++){
 						JSONObject jo = ja.getJSONObject(i);
-						massive.add(jo.getString("post_title"));
+						m = new HashMap<String, Object>();
+						m.put(ATTR_NAME_TITLE, jo.getString("post_title"));
+						m.put(ATTR_NAME_DESC, jo.getString("post_content").replaceAll("\\<[^>]*>", ""));
+						massive_map.add(m);
+						//massive.add(jo.getString("post_title"));
 					}
 				} catch (JSONException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				
-				adapter.notifyDataSetChanged();
 				
-				/*String title = "";
-				 
-				 result = new ArrayList<Map<String, String>>();
-				 for(int i=0; i < ja.length(); i++){
-					 try {
-						 JSONObject post_obj = ja.getJSONObject(i);
-						 title = post_obj.getString("post_title");
-					 } catch (JSONException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-					 }
-					 hashmap = new HashMap<String, String>();
-					 hashmap.put("title", title);
-					 hashmap.put("desc", "desc"+i);
-					 result.add(hashmap);
-					 adapter.notifyDataSetChanged();
-				 }*/
+				//say adapter - smth changed
+				//adapter.notifyDataSetChanged();
+				sAdapter.notifyDataSetChanged();
+				
+				
 		}
 		      	
 	}
