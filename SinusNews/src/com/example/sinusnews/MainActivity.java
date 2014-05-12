@@ -23,6 +23,7 @@ import android.app.Activity;
 import android.util.Log;
 //import android.util.JsonReader;
 import android.view.Menu;
+import android.view.View;
 import android.widget.*;
 import android.net.ConnectivityManager; 
 import android.net.NetworkInfo; 
@@ -48,6 +49,7 @@ public class MainActivity extends Activity {
 	SimpleAdapter sAdapter;
 	ArrayList<Map<String, Object>> massive_map;
 	Map<String, Object> m;
+	View footer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +91,9 @@ public class MainActivity extends Activity {
 		 String[] from = {ATTR_NAME_TITLE, ATTR_NAME_DESC};
 		 int[] to = {R.id.tvTitle, R.id.tvDesc};
 		 
-		 
+		 //Footer
+		 footer = getLayoutInflater().inflate(R.layout.footer, null);
+		 lvResult.addFooterView(footer);
 		 
 		 //create adapter and set it
 		// adapter = new ArrayAdapter<String>(this, R.layout.list_item, massive);
