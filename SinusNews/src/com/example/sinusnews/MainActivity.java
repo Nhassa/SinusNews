@@ -25,6 +25,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.*;
+import android.widget.AbsListView.OnScrollListener;
 import android.net.ConnectivityManager; 
 import android.net.NetworkInfo; 
 import android.content.Context; 
@@ -50,6 +51,7 @@ public class MainActivity extends Activity {
 	ArrayList<Map<String, Object>> massive_map;
 	Map<String, Object> m;
 	View footer;
+	Integer lastNew;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,12 +70,14 @@ public class MainActivity extends Activity {
 		 Log.d(LOG_TAG, "onCreate");
 		 
 		 if( isOnline(this) ){
-			 Log.d(LOG_TAG, "isOnline");
+			 Log.d(LOG_TAG, "isOnline onCreate");
 			 Toast toast = Toast.makeText(getApplicationContext(), 
 						   "Интернет есть!", Toast.LENGTH_SHORT); 
 			 toast.show(); 
+			 lastNew = 5;
 			 loader = new AsyncNewsLoader();
-			 loader.execute();
+			 loader.execute(0);
+			 
 		 } else {
 			 Log.d(LOG_TAG, "isOffline");
 				Toast toast = Toast.makeText(getApplicationContext(), 
@@ -91,24 +95,53 @@ public class MainActivity extends Activity {
 		 String[] from = {ATTR_NAME_TITLE, ATTR_NAME_DESC};
 		 int[] to = {R.id.tvTitle, R.id.tvDesc};
 		 
+		 sAdapter = new SimpleAdapter(this, massive_map, R.layout.list_item_map, from, to);
+		 
 		 //Footer
-		 footer = getLayoutInflater().inflate(R.layout.footer, null);
-		 lvResult.addFooterView(footer);
+		 //footer = getLayoutInflater().inflate(R.layout.footer, null);
+		 //lvResult.addFooterView(footer);
 		 
 		 //create adapter and set it
 		// adapter = new ArrayAdapter<String>(this, R.layout.list_item, massive);
-		// lvResult.setAdapter(adapter);
-		 sAdapter = new SimpleAdapter(this, massive_map, R.layout.list_item_map, from, to);
+		// lvResult.setAdapter(adapter); 
 		 lvResult.setAdapter(sAdapter);
 		 
-		 
-		 
+		 lvResult.setOnScrollListener(new OnScrollListener(){
+			 public void onScrollStateChanged(AbsListView view, int scrollState){}
+			 
+			 public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount){
+				 Log.d(LOG_TAG, "isScrolling");
+				 Log.d(LOG_TAG, "visibleItemCount " + visibleItemCount + " firstVisibleItem " + firstVisibleItem + 
+						 " totalItemCount " + totalItemCount + " lastNew " + lastNew);
+				 if (view.getAdapter() != null && visibleItemCount > 0 && ( firstVisibleItem + visibleItemCount >= totalItemCount )/* && hasNextPage()*/) {
+					 
+					 if( isOnline(MainActivity.this) ){
+						 Log.d(LOG_TAG, "isOnline onScroll");
+						 if( totalItemCount == lastNew ) {
+							 Log.d(LOG_TAG, "loadSecondNews");
+							  
+							 loader = new AsyncNewsLoader();
+							 loader.execute(totalItemCount);
+							 lastNew = lastNew + 5;
+						 }
+					 } else {
+						 Log.d(LOG_TAG, "isOffline");
+							Toast toast = Toast.makeText(getApplicationContext(), 
+									   "Интернета нет!", Toast.LENGTH_SHORT); 
+							toast.show();
+					 }
+	             }
+			 }
+		 });
 		
 	}
 	
 	protected void onStart(){
 		super.onStart();
+		Log.d(LOG_TAG, "onStart");
+		
 		if( isOnline(this) ){
+			Log.d(LOG_TAG, "isOnline onStart");
 			Toast toast = Toast.makeText(getApplicationContext(), 
 					   "Интернет есть!", Toast.LENGTH_SHORT); 
 			toast.show(); 
@@ -136,18 +169,24 @@ public class MainActivity extends Activity {
         return false;
 	}
 	
-	private class AsyncNewsLoader extends AsyncTask<Void, Void, String> {
+	//AsyncTask
+	private class AsyncNewsLoader extends AsyncTask<Integer, Void, String> {
 		protected void onPreExecute() {
 			super.onPreExecute();
 		      	tvInfo.setText("Latest news: загружаются...");
 		      	Log.d(LOG_TAG, "startLoading");
 		}
 		
-		protected String doInBackground(Void... params){
+		protected String doInBackground(Integer... params){
+			Integer param = 0;
+			if( params.length > 0 ){
+            	param = params[0];		    	
+            }
+			
 			try{
 				//TimeUnit.SECONDS.sleep(2);
 				HttpClient client = new DefaultHttpClient();
-				HttpGet request = new HttpGet("http://sinustech.net/android_news.php");
+				HttpGet request = new HttpGet("http://sinustech.net/android_news.php?n=" + param);
 				HttpResponse response = client.execute(request);
 				
 				//Get response
@@ -209,5 +248,7 @@ public class MainActivity extends Activity {
 		}
 		      	
 	}
+	
+	
 
 }
