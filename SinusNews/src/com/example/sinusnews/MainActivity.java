@@ -30,6 +30,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.net.ConnectivityManager; 
 import android.net.NetworkInfo; 
 import android.content.Context; 
+import android.content.Intent;
 
 public class MainActivity extends Activity {
 
@@ -152,9 +153,20 @@ public class MainActivity extends Activity {
 			 public void onItemClick(AdapterView<?> parent, View view,
 			          int position, long id)
 			 {
-				 TextView tv = (TextView) view.findViewById(R.id.tvId);
-				 String str = tv.getText().toString();
-				 Log.d(LOG_TAG, "itemClick: position = " + position + ", id = " + str);
+				 TextView tvId = (TextView) view.findViewById(R.id.tvId);
+				 String newsId = tvId.getText().toString();
+				 TextView tvTitle = (TextView) view.findViewById(R.id.tvTitle);
+				 String newsTitle = tvTitle.getText().toString();
+				 TextView tvDate = (TextView) view.findViewById(R.id.tvDate);
+				 String newsDate = tvDate.getText().toString();
+				 
+				 Log.d(LOG_TAG, "itemClick: position = " + position + ", id = " + newsId);
+				 
+				 Intent intent = new Intent(MainActivity.this, OneNews.class);
+				 intent.putExtra("newsId", newsId);
+				 intent.putExtra("newsTitle", newsTitle);
+				 intent.putExtra("newsDate", newsDate);
+				 startActivity(intent);
 			 }
 		 });
 		
@@ -234,7 +246,6 @@ public class MainActivity extends Activity {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			
 			}
 			return json_txt;
 		}
