@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
 	Map<String, Object> m;
 	View footer;
 	Integer lastNew;
+	Boolean isTaskFinished = true;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -132,7 +133,7 @@ public class MainActivity extends Activity {
 					 
 					 if( isOnline(MainActivity.this) ){
 						 Log.d(LOG_TAG, "isOnline onScroll");
-						 if( totalItemCount == lastNew ) {
+						 if( totalItemCount == lastNew && isTaskFinished == true ) {
 							 Log.d(LOG_TAG, "loadSecondNews");
 							  
 							 loader = new AsyncNewsLoader();
@@ -211,6 +212,7 @@ public class MainActivity extends Activity {
 			super.onPreExecute();
 		      	tvInfo.setText("Новости: загружаются...");
 		      	Log.d(LOG_TAG, "startLoading");
+		      	isTaskFinished = false;
 		}
 		
 		protected String doInBackground(Integer... params){
@@ -242,9 +244,11 @@ public class MainActivity extends Activity {
 				
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
+				Log.d(LOG_TAG, "Something wrong with ClientProtocol");
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
+				Log.d(LOG_TAG, "Something wrong with IO");
 				e.printStackTrace();
 			}
 			return json_txt;
@@ -256,6 +260,7 @@ public class MainActivity extends Activity {
 		      	//tvResult.setText(json_txt);
 		      	
 		      	Log.d(LOG_TAG, "endLoading");
+		      	isTaskFinished = true;
 		      	
 		      //JSON parsing
 				JSONArray ja = null;
@@ -273,6 +278,7 @@ public class MainActivity extends Activity {
 					}
 				} catch (JSONException e1) {
 					// TODO Auto-generated catch block
+					Log.d(LOG_TAG, "Something wrong with JSON parsing");
 					e1.printStackTrace();
 				}
 				

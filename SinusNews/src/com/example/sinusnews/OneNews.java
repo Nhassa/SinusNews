@@ -3,6 +3,8 @@ package com.example.sinusnews;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -13,20 +15,28 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+//import android.text.Html;
+//import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class OneNews extends Activity {
 	
 	final String LOG_TAG = "sinusLogs";
 	
 	TextView tvTitle;
-	TextView tvDesc;
+	//TextView tvDesc;
+	WebView wvDesc;
 	TextView tvDate;
 	ProgressBar pbLoading;
 	String json_txt = "";
@@ -42,7 +52,8 @@ public class OneNews extends Activity {
 		
 		pbLoading = (ProgressBar) findViewById(R.id.pbLoading);
 		tvTitle = (TextView) findViewById(R.id.tvOneTitle);
-		tvDesc = (TextView) findViewById(R.id.tvOneDesc);
+		//tvDesc = (TextView) findViewById(R.id.tvOneDesc);
+		wvDesc = (WebView) findViewById(R.id.tvOneDesc);
 		tvDate = (TextView) findViewById(R.id.tvOneDate);
 		
 		//Get news id
@@ -53,8 +64,27 @@ public class OneNews extends Activity {
 		
 		Log.d(LOG_TAG, "OneNews beforeLoading");
 		//tvTitle.setText(newsId);
-		loader = new AsyncOneNewsLoader();
-		loader.execute(newsId);
+		
+		if( isOnline(this) ){
+			Log.d(LOG_TAG, "OneNews isOnline");
+			loader = new AsyncOneNewsLoader();
+			loader.execute(newsId);
+		} else {
+			Log.d(LOG_TAG, "OneNews isOffline");
+			Toast toast = Toast.makeText(getApplicationContext(), 
+					   "Интернета нет!", Toast.LENGTH_SHORT); 
+			toast.show();
+		}
+	}
+	
+	public static boolean isOnline(Context context){
+		ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting())
+        {
+            return true;
+        }
+        return false;
 	}
 	
 	private class AsyncOneNewsLoader extends AsyncTask<String, Void, String>{
@@ -105,13 +135,24 @@ public class OneNews extends Activity {
 				for(int i=0; i<ja.length(); i++){
 					JSONObject jo = ja.getJSONObject(i);
 					
+					/*Spanned s = Html.fromHtml("<style>p{margin: 5px 0;}</style>" + jo.getString("post_content"));
+					tvDesc.setText(s);*/
+					
+					String html = "<html><head>" +
+							"<style>body{color:#777777;font-size:14px;} p{margin: 5px 0;} img{width: 100%;margin-bottom: 5px;} a{color:#52b7fd;}</style>" +
+							"</head><body>" + jo.getString("post_content") + 
+							"</body></html>";
+					String str = "<?xml version='1.0' encoding='UTF-8' ?>" + URLEncoder.encode(html, "UTF-8").replaceAll("\\+"," ");
+					wvDesc.loadData(str, "text/html; charset=UTF-8", null);
 					tvTitle.setText(newsTitle);
-					tvDesc.setText(jo.getString("post_content").replaceAll("\\<[^>]*>", ""));
 					tvDate.setText(newsDate);
 				}
 			} catch (JSONException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 	}

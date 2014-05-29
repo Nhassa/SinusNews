@@ -10,5 +10,6 @@
     <string name="news_date">Дата добавления</string>
     <string name="header_text">Новости:</string>
     <string name="news_id">0</string>
+    <string name="empty"> </string>
 	
 </resources>
