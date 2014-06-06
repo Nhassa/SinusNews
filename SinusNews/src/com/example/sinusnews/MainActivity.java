@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-//import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -31,6 +31,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo; 
 import android.content.Context; 
 import android.content.Intent;
+import android.content.res.Configuration;
 
 public class MainActivity extends Activity {
 
@@ -51,15 +52,17 @@ public class MainActivity extends Activity {
 	//ArrayList<String> massive;
 	//ArrayList<Map<String, String>> result;
 	//Map<String, String> hashmap;
-	String json_txt = "";
+	//String json_txt = "";
 	//ArrayAdapter<String> adapter;
 	SimpleAdapter sAdapter;
 	ArrayList<Map<String, Object>> massive_map;
 	Map<String, Object> m;
-	View footer;
+	//View footer;
 	Integer lastNew;
 	Boolean isTaskFinished = true;
 
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,7 +79,7 @@ public class MainActivity extends Activity {
 		 
 		 //massive = new ArrayList<String>();
 		 
-		 Log.d(LOG_TAG, "onCreate");
+		 Log.d(LOG_TAG, "onCreate" + this.hashCode());
 		 
 		 if( isOnline(this) ){
 			 Log.d(LOG_TAG, "isOnline onCreate");
@@ -84,8 +87,15 @@ public class MainActivity extends Activity {
 						   "Интернет есть!", Toast.LENGTH_SHORT); 
 			 toast.show(); 
 			 lastNew = 5;
-			 loader = new AsyncNewsLoader();
-			 loader.execute(0);
+			// loader = (AsyncNewsLoader) getLastNonConfigurationInstance();
+			// if(loader == null){
+				 loader = new AsyncNewsLoader();
+				 loader.execute(0);
+			// }
+			 Log.d(LOG_TAG, "newLoader" + loader.hashCode());
+			//loader.link(this);
+			 
+			 
 			 
 		 } else {
 			 Log.d(LOG_TAG, "isOffline");
@@ -137,6 +147,7 @@ public class MainActivity extends Activity {
 							 Log.d(LOG_TAG, "loadSecondNews");
 							  
 							 loader = new AsyncNewsLoader();
+							 Log.d(LOG_TAG, "newLoader" + loader.hashCode());
 							 loader.execute(totalItemCount);
 							 lastNew = lastNew + 5;
 						 }
@@ -175,7 +186,7 @@ public class MainActivity extends Activity {
 	
 	protected void onStart(){
 		super.onStart();
-		Log.d(LOG_TAG, "onStart");
+		Log.d(LOG_TAG, "onStart" + this.hashCode());
 		
 		if( isOnline(this) ){
 			Log.d(LOG_TAG, "isOnline onStart");
@@ -206,23 +217,40 @@ public class MainActivity extends Activity {
         return false;
 	}
 	
+	/*public Object onRetainNonConfigurationInstance(){
+		Log.d(LOG_TAG, "returnLoader " + loader.hashCode());
+		loader.unlink();
+		return loader;
+	}*/
+	
 	//AsyncTask
-	private class AsyncNewsLoader extends AsyncTask<Integer, Void, String> {
+	class AsyncNewsLoader extends AsyncTask<Integer, Void, String> {
+		
+		/*MainActivity activity;
+		
+		void link(MainActivity act){
+			activity = act;
+		}
+		void unlink(){
+			activity = null;
+		}*/
+		
 		protected void onPreExecute() {
 			super.onPreExecute();
-		      	tvInfo.setText("Новости: загружаются...");
-		      	Log.d(LOG_TAG, "startLoading");
+			tvInfo.setText("Новости: загружаются...");
+		      	Log.d("sinusLogs", "startLoading");
 		      	isTaskFinished = false;
 		}
 		
 		protected String doInBackground(Integer... params){
+			String json_txt = "";
 			Integer param = 0;
 			if( params.length > 0 ){
             	param = params[0];		    	
             }
 			
 			try{
-				//TimeUnit.SECONDS.sleep(2);
+				TimeUnit.SECONDS.sleep(2);
 				HttpClient client = new DefaultHttpClient();
 				HttpGet request = new HttpGet("http://sinustech.net/android_news.php?n=" + param);
 				HttpResponse response = client.execute(request);
@@ -236,6 +264,7 @@ public class MainActivity extends Activity {
 				//StringBuilder sb = new StringBuilder();
 				String line = "";
 				
+				
 				while((line = reader.readLine()) != null){
 					json_txt = line;
 				}
@@ -244,11 +273,14 @@ public class MainActivity extends Activity {
 				
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "Something wrong with ClientProtocol");
+				Log.d("sinusLogs", "Something wrong with ClientProtocol");
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "Something wrong with IO");
+				Log.d("sinusLogs", "Something wrong with IO");
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return json_txt;
@@ -256,14 +288,15 @@ public class MainActivity extends Activity {
 		
 		protected void onPostExecute(String json_txt) {
 			super.onPostExecute(json_txt);
-		      	tvInfo.setText("Новости:");
+			tvInfo.setText("Новости:");
 		      	//tvResult.setText(json_txt);
 		      	
-		      	Log.d(LOG_TAG, "endLoading");
+		      	Log.d("sinusLogs", "endLoading");
 		      	isTaskFinished = true;
 		      	
 		      //JSON parsing
 				JSONArray ja = null;
+				Map<String, Object> m;
 				try {
 					ja = new JSONArray(json_txt);
 					for(int i=0; i<ja.length(); i++){
@@ -278,7 +311,7 @@ public class MainActivity extends Activity {
 					}
 				} catch (JSONException e1) {
 					// TODO Auto-generated catch block
-					Log.d(LOG_TAG, "Something wrong with JSON parsing");
+					Log.d("sinusLogs", "Something wrong with JSON parsing");
 					e1.printStackTrace();
 				}
 				
@@ -292,6 +325,19 @@ public class MainActivity extends Activity {
 		      	
 	}
 	
+	protected void onRestoreInstanceState(Bundle savedInstanceState){
+		super.onRestoreInstanceState(savedInstanceState);
+		Log.d(LOG_TAG, "onRestoreInstanceState");
+	}
 	
+	protected void onSaveInstanceState(Bundle outState){
+		super.onSaveInstanceState(outState);
+		Log.d(LOG_TAG, "onSaveInstanceState");
+	}
+	
+	public void onConfigurationChanged(Configuration newConfig){
+		super.onConfigurationChanged(newConfig);
+		Log.d(LOG_TAG, "ConfigurationChanged");
+	}
 
 }
